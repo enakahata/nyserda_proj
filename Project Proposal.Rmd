@@ -1,0 +1,87 @@
+---
+title: "Project Proposal"
+author: "Eileen Nakahata"
+date: "3/7/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Understanding NY State's Support for Clean Energy Innovation 1991-2020
+
+This semester I am working on an independent study project reviewing case studies of programs that attempt to bridge the implementation gap for climate technology by providing transitional financing and facilitating collaboration between stakeholders. NYSERDA’s Clean Energy Fund is a really interesting case study we’re working on and I think it would be interesting to add some quantitative analysis of their funding patterns to our primarily qualitative case studies.  
+
+This topic is important because clean technology, especially energy related technology, has significant barriers to implementation and has historically taken decades to develop, demonstrate, commercialize and deploy. We don’t have decades to decarbonize if we want to keep warming below 2 degrees C. There is increasing political and societal interest in investing public and private funds to support clean tech innovation beyond traditional R&D at universities and national laboratories. 
+
+This dataset is interesting because, in addition to research studies, it includes later stage innovation support, such as funding for product development, demonstration, business support, and ecosystem support (i.e. incubator programs) over nearly 30 years. I want to give a general overview of the types of projects that have been funded, who has received funding and how much. Then I would like to focus in on whether or how changes to New York's policies and priorities changed research and development funding for clean energy innovation. I plan to make visualizations that could be included in a report or a storymap.
+
+## Dataset
+This dataset includes:
+```{r, include=FALSE}
+#set-up
+library(tidyverse)
+library(ggplot2)
+library(psych)
+#dataset
+NYSERDA <- read.csv("NYSERDA.csv")
+#data cleaning and formatting
+NYSERDA <- as_tibble(NYSERDA)
+NYSERDA$Contractor.Type <- as.factor(NYSERDA$Contractor.Type)
+NYSERDA$Project.Type <- as.factor(NYSERDA$Project.Type)
+```
+```{r, echo=FALSE}
+head(NYSERDA)
+```
+Here is what some of the key variables look like:
+```{r, echo=FALSE}
+NYSERDA1 <- separate(NYSERDA, Award.Date, c("Month", "Day", "Year"), "/")
+NYSERDA1$Year <- as.numeric(NYSERDA1$Year)
+NYSERDA1$Month <- as.numeric(NYSERDA1$Month)
+NYSERDA1$Day <- as.numeric(NYSERDA1$Day)
+sub1 <- select(NYSERDA1, Application.ID:Project.Title, Year, Award.Amount..US.Dollars.)
+colnames(sub1) <- c("AppID", "ContractorName", "ContractorType", "ProjectType", "Tech1", "Tech2", "Tech3", "ProjectTitle", "Year", "AwardAmtUSD")
+summary(sub1)
+```
+
+## Exploratory Plots
+```{r pressure, echo=FALSE}
+p2 <- ggplot(sub1, aes(fill=ProjectType, x=Year, y=AwardAmtUSD)) +
+  geom_bar(position="stack", stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "NYSERDA Awards over time 1991-2020", 
+       subtitle = "Project funding by type",
+       caption = "Source: NYSERDA", 
+       x = "Year", 
+       y = "Award Amount (USD)") +
+  theme_minimal()
+p2
+
+p4 <- ggplot(sub1, aes(fill=ContractorType, x=Year, y=AwardAmtUSD)) +
+  geom_bar(position="stack", stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "NYSERDA Awards over time 1991-2020", 
+       subtitle = "Project funding by contractor type",
+       caption = "Source: NYSERDA", 
+       x = "Year", 
+       y = "Award Amount (USD)") +
+  theme_minimal()
+p4
+
+h1 <- ggplot(data = sub1, aes(x=AwardAmtUSD, fill=ProjectType)) +
+  geom_histogram(binwidth=1000000) +
+  scale_x_continuous(labels = scales::comma) +
+  labs(title = "NYSERDA Award Size", 
+       subtitle = "Project funding by type",
+       caption = "Source: NYSERDA", 
+       x = "Award Amount (USD)", 
+       y = "# of projects funded") +
+  theme_minimal() +
+  facet_wrap(~ProjectType)
+h1
+```
+
